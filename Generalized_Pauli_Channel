@@ -15,8 +15,8 @@ def pauli_basis(n_qubits: int) -> List[Pauli]:
 	Returns:
 		List of all 4^n Pauli operators as Pauli objects
 	"""
-	#pauli_strings = list(product(['I', 'X', 'Y', 'Z'], repeat=n_qubits))
-	pauli_strings = list(product(['I', 'X'], repeat=n_qubits))
+	#pauli_strings = list(product(['I', 'X', 'Y', 'Z'], repeat=n_qubits))  # Generalized Pauli Channel
+	pauli_strings = list(product(['I', 'X'], repeat=n_qubits)) #Generalized Bit-Flip Channel
 	return [Pauli(''.join(pauli_str)) for pauli_str in pauli_strings]
 
 def pauli_basis_matrices(n_qubits: int) -> List[np.ndarray]:
