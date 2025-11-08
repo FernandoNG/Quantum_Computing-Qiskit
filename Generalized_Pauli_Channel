@@ -1,4 +1,3 @@
-#@title Libraries
 import numpy as np
 from qiskit.quantum_info import Pauli, SparsePauliOp, Statevector, partial_trace
 from qiskit.quantum_info.operators import Operator
@@ -7,18 +6,18 @@ from typing import List, Tuple, Union
 from qiskit.circuit.library import UnitaryGate
 
 def pauli_basis(n_qubits: int) -> List[Pauli]:
-    """
-    Generate the complete Pauli basis for n qubits.
-
-    Args:
-        n_qubits: Number of qubits
-
-    Returns:
-        List of all 4^n Pauli operators as Pauli objects
-    """
-    #pauli_strings = list(product(['I', 'X', 'Y', 'Z'], repeat=n_qubits))
-    pauli_strings = list(product(['I', 'X'], repeat=n_qubits))
-    return [Pauli(''.join(pauli_str)) for pauli_str in pauli_strings]
+	"""
+	Generate the complete Pauli basis for n qubits.
+	
+	Args:
+		n_qubits: Number of qubits
+	
+	Returns:
+		List of all 4^n Pauli operators as Pauli objects
+	"""
+	#pauli_strings = list(product(['I', 'X', 'Y', 'Z'], repeat=n_qubits))
+	pauli_strings = list(product(['I', 'X'], repeat=n_qubits))
+	return [Pauli(''.join(pauli_str)) for pauli_str in pauli_strings]
 
 def pauli_basis_matrices(n_qubits: int) -> List[np.ndarray]:
     """
@@ -60,34 +59,41 @@ def create_shifted_list(N: int, n: int) -> list:
     return list(range(n + 1, N)) + list(range(0, n + 1))
 
 def PC(S,p):
-  N=int(np.log2(len(S)))
-  Krauss=pauli_basis_matrices(N)
-  listq=generate_basis_states_binary(N)
-  listapp=create_shifted_list(N+N, N-1)
-  if int(np.log2(len(p)))!=N:
-    print(int(np.log2(len(p))))
-    print("The array p is incorrect")
-    return
-  qubitsS=QuantumRegister(N,'s')
-  qubitsE=QuantumRegister(N,'e')
-  bit=ClassicalRegister(1,'c')
-  #System Preparation
-  qcS=QuantumCircuit(qubitsS)
-  qcS=StatePreparation(S)
-  #Environment Preparation
-  amp=np.sqrt(p)
-  qcE=QuantumCircuit(qubitsE)
-  qcE=StatePreparation(amp)
+	'''
+	Generator of the circuit, without mesurement, of the generilized Pauli Channel for N qubits,
+	with the Pauli matrices basis for N qubits as Kraus operators
+	args:
+		--S: List of amplitudes for the initial state of the system.
+		--p: List of probabilites for the Kraus operators
+	return: Circuit to simulate in a quantum computing the Pauli Channel.
+	'''
+	N=int(np.log2(len(S)))
+	Krauss=pauli_basis_matrices(N)
+	listq=generate_basis_states_binary(N)
+	listapp=create_shifted_list(N+N, N-1)
+	if int(np.log2(len(p)))!=N:
+		print(int(np.log2(len(p))))
+		print("The array p is incorrect")
+		return
+	qubitsS=QuantumRegister(N,'s')
+	qubitsE=QuantumRegister(N,'e')
+	#bit=ClassicalRegister(1,'c')
+	#System Preparation
+	qcS=QuantumCircuit(qubitsS)
+	qcS=StatePreparation(S)
+	#Environment Preparation
+	amp=np.sqrt(p)
+	qcE=QuantumCircuit(qubitsE)
+	qcE=StatePreparation(amp)
+	
+	#Creation of the circuit
+	qc=QuantumCircuit(qubitsS,qubitsE,bit)
+	qc.append(qcS,qubitsS)
+	qc.append(qcE,qubitsE)
+	qc.barrier()
+	
+	for i in range(len(listq)):
+		qcK=Krauss[i].control(N,ctrl_state=str(listq[i]))
+		qc.append(qcK, listapp)
 
-  #Creation of the circuit
-  qc=QuantumCircuit(qubitsS,qubitsE,bit)
-  qc.append(qcS,qubitsS)
-  qc.append(qcE,qubitsE)
-  qc.barrier()
-
-  for i in range(len(listq)):
-    qcK=Krauss[i].control(N,ctrl_state=str(listq[i]))
-    qc.append(qcK, listapp)
-
-
-  return qc #Final Quantum circuit
+	return qc #Final Quantum circuit
