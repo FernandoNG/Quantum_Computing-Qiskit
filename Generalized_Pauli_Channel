@@ -98,3 +98,4 @@ def PC(S,p):
 		qc.append(qcK, listapp)
 
 	return qc #Final Quantum circuit
+```
